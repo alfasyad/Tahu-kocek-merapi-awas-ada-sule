@@ -1,6 +1,6 @@
 /* Akun opsional + sinkron antar HP (Firebase) - Tahu Kocek Merapi */
 (function(){
-var FB={apiKey:"",authDomain:"",projectId:"",appId:""};
+var FB={apiKey:"AIzaSyAMceJ4ZH9l24GVjpT9Fuzov72NVqm3JgY",authDomain:"tahu-kocek-merapi-1e9c1.firebaseapp.com",projectId:"tahu-kocek-merapi-1e9c1",appId:"1:140061209222:web:d1ce1e967cb162fc90d707"};
 var cu=null,cdb=null,CA=null,unsub=null,prev={},mode="in",ready=false;
 var $=function(i){return document.getElementById(i)},noop=function(){};
 var css=".wrap{position:relative}"
