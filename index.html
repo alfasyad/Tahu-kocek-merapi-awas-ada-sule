@@ -59,9 +59,15 @@ h2{font-size:16px;margin:22px 0 10px;color:var(--yel)}
 .card{background:linear-gradient(135deg,#5a0d06,#2b0503);border:1px solid var(--line);border-radius:14px;padding:14px 16px;animation:in .45s ease}
 .card small{color:var(--mut);font-size:13px}.card b{display:block;font-size:24px;color:var(--yel);margin:2px 0}.card span{font-size:13px}
 .bars{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 14px}
-.br{display:flex;align-items:center;gap:8px;font-size:12px;margin:8px 0}.br u{width:60px;text-decoration:none;color:var(--mut)}
+.br{display:flex;align-items:center;gap:8px;font-size:12px;margin:8px 0}.br u{width:84px;text-decoration:none;color:var(--mut)}
 .br div{flex:1;height:10px;background:#2b0503;border-radius:6px;overflow:hidden}.br i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--yel));border-radius:6px;transition:width .6s ease}
 .br em{font-style:normal;width:84px;text-align:right}
+.pills{display:flex;gap:6px;margin-bottom:12px}
+.pills button{flex:1;font:inherit;font-size:13px;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 0;cursor:pointer;transition:background .3s,color .3s,border-color .3s}
+.pills button.on{color:#fff;background:linear-gradient(135deg,var(--red),var(--org));border-color:var(--yel)}
+.nav2{display:flex;align-items:center;gap:8px;margin:6px 0 12px}
+.nav2 button{font:inherit;color:var(--txt);background:var(--card);border:1px solid var(--line);border-radius:10px;width:44px;height:38px;font-size:20px;cursor:pointer}
+.nav2 button:disabled{opacity:.3}.nav2 span{flex:1;text-align:center;font-size:14px;color:var(--yel)}
 </style>
 </head>
 <body>
@@ -140,14 +146,35 @@ function upd(){
 function wal(n){
  var m="Tahu Kocek Merapi:\n- Jenis: "+n.j+"\n- Level: "+n.l+"\n- Topping: "+(n.t.length?n.t.join(", "):"-")+"\n- Total: "+rp(n.tot)+"\n- Waktu: "+tgl(n.ts);
  return "https://wa.me/"+WA+"?text="+encodeURIComponent(m)}
+var LV="h",LO=0;
+function dr(v,o){var n=new Date(),y=n.getFullYear(),m=n.getMonth(),d=n.getDate(),a,b;
+ if(v=="h"){a=new Date(y,m,d+o);b=new Date(y,m,d+o+1)}
+ else if(v=="m"){var w=(n.getDay()+6)%7;a=new Date(y,m,d-w+o*7);b=new Date(y,m,d-w+o*7+7)}
+ else if(v=="b"){a=new Date(y,m+o,1);b=new Date(y,m+o+1,1)}
+ else{a=new Date(y+o,0,1);b=new Date(y+o+1,0,1)}
+ return [a,b]}
 function lap(){
- var n=new Date(),d0=new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();
- var wk=d0-((n.getDay()+6)%7)*864e5,mo=new Date(n.getFullYear(),n.getMonth(),1).getTime();
- var S=function(f){var t=0,c=0;H.forEach(function(x){if(x.ts>=f){t+=x.tot;c++}});return [t,c]};
- var card=function(l,v){return '<div class="card"><small>'+l+'</small><b>'+rp(v[0])+'</b><span>'+v[1]+' pesanan</span></div>'};
- var days=[],mx=1;
- for(var i=6;i>=0;i--){var s=d0-i*864e5,e=s+864e5,t=0;H.forEach(function(x){if(x.ts>=s&&x.ts<e)t+=x.tot});var dd=new Date(s);days.push([HR[dd.getDay()].slice(0,3)+" "+dd.getDate(),t]);if(t>mx)mx=t}
- $("lap").innerHTML='<div class="cards">'+card("Hari ini",S(d0))+card("Minggu ini (Senin – Minggu)",S(wk))+card("Bulan ini ("+BL[n.getMonth()]+")",S(mo))+'</div><h2>7 hari terakhir</h2><div class="bars">'+days.map(function(x){return '<div class="br"><u>'+x[0]+'</u><div><i style="width:'+Math.round(x[1]/mx*100)+'%"></i></div><em>'+rp(x[1])+'</em></div>'}).join("")+'</div><p class="empty">Dihitung dari nota yang tersimpan di HP ini. Menghapus nota ikut mengurangi penghasilan.</p>'}
+ var r=dr(LV,LO),a=r[0],A=a.getTime(),B=r[1].getTime(),it=H.filter(function(x){return x.ts>=A&&x.ts<B}),tot=0,rows=[],i;
+ it.forEach(function(x){tot+=x.tot});
+ var fd=function(d){return d.getDate()+" "+BL[d.getMonth()]},ttl,sub;
+ if(LV=="h"){ttl=(LO==0?"Hari ini · ":"")+HR[a.getDay()]+", "+fd(a)+" "+a.getFullYear();sub="Rincian per jenis (jumlah terjual)";
+  jenis.forEach(function(j){var c=0,s=0;it.forEach(function(x){if(x.j==j[0]){c++;s+=x.tot}});rows.push([j[0]+" ("+c+")",s])})}
+ else if(LV=="m"){var e=new Date(a.getFullYear(),a.getMonth(),a.getDate()+6);ttl=(LO==0?"Minggu ini · ":"")+fd(a)+" – "+fd(e)+" "+e.getFullYear();sub="Rincian harian";
+  for(i=0;i<7;i++){var d1=new Date(a.getFullYear(),a.getMonth(),a.getDate()+i),s1=0;
+   it.forEach(function(x){var q=new Date(x.ts);if(q.getDate()==d1.getDate()&&q.getMonth()==d1.getMonth())s1+=x.tot});
+   rows.push([HR[d1.getDay()]+" "+d1.getDate(),s1])}}
+ else if(LV=="b"){ttl=(LO==0?"Bulan ini · ":"")+BL[a.getMonth()]+" "+a.getFullYear();sub="Rincian mingguan";
+  var w0=(a.getDay()+6)%7,dim=new Date(a.getFullYear(),a.getMonth()+1,0).getDate(),nw=Math.ceil((dim+w0)/7);
+  for(i=0;i<nw;i++)rows.push(["Minggu ke-"+(i+1),0]);
+  it.forEach(function(x){rows[Math.floor((new Date(x.ts).getDate()-1+w0)/7)][1]+=x.tot})}
+ else{ttl=(LO==0?"Tahun ini · ":"")+a.getFullYear();sub="Rincian bulanan";
+  for(i=0;i<12;i++)rows.push([BL[i],0]);
+  it.forEach(function(x){rows[new Date(x.ts).getMonth()][1]+=x.tot})}
+ var mx=1;rows.forEach(function(x){if(x[1]>mx)mx=x[1]});
+ var pills=[["h","Harian"],["m","Mingguan"],["b","Bulanan"],["t","Tahunan"]].map(function(p){return '<button data-v="'+p[0]+'"'+(p[0]==LV?' class="on"':'')+'>'+p[1]+'</button>'}).join("");
+ $("lap").innerHTML='<div class="pills">'+pills+'</div><div class="nav2"><button data-n="-1">‹</button><span>'+ttl+'</span><button data-n="1"'+(LO>=0?' disabled':'')+'>›</button></div><div class="cards"><div class="card"><small>Total penghasilan</small><b>'+rp(tot)+'</b><span>'+it.length+' pesanan</span></div></div><h2>'+sub+'</h2><div class="bars">'+rows.map(function(x){return '<div class="br"><u>'+x[0]+'</u><div><i style="width:'+Math.round(x[1]/mx*100)+'%"></i></div><em>'+rp(x[1])+'</em></div>'}).join("")+'</div><p class="empty">Harian yang sudah lewat tetap bisa dilihat di Mingguan, mingguan di Bulanan, dan bulanan di Tahunan. Data dari nota di HP ini.</p>'}
+$("lap").onclick=function(e){var v=e.target.getAttribute("data-v"),n=e.target.getAttribute("data-n");
+ if(v){LV=v;LO=0;lap()}else if(n){LO+=+n;lap()}};
 function render(){
  var c=$("hist"),k=$("cnt");k.hidden=!H.length;k.textContent=H.length;lap();
  if(!H.length){c.innerHTML='<p class="empty">Belum ada nota.<br>Pesan dulu di tab Menu.</p>';return}
