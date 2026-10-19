@@ -235,3 +235,52 @@ function watch(){var n=0,t=setInterval(function(){
 var m0=load();apply(valid(m0)?m0:JSON.parse(JSON.stringify(DEF)));
 watch();
 })();
+/* ===== Jumlah porsi tahu kocek (tombol + dan -, maks 50) ===== */
+(function(){
+var G=function(i){return document.getElementById(i)},MAX=50,J=[];
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function paintJ(i){var q=(st.q||{})[i]||0;if(!J[i])return;J[i].n.textContent=q;J[i].r.classList.toggle("on",q>0);J[i].m.disabled=q<1;J[i].p.disabled=q>=MAX}
+var obs=new MutationObserver(function(){rebuildJ()});
+function rebuildJ(){obs.disconnect();var jx=G("jenis");jx.innerHTML="";J=[];st.q=st.q||{};
+ jenis.forEach(function(x,i){var r=document.createElement("div");r.className="trow jrow";
+  r.innerHTML='<div class="tn"><b>'+esc((x[2]||"")+x[0])+'</b><span>'+rp(x[1])+' per porsi</span></div><div class="qty"><button class="qm" aria-label="Kurangi">−</button><i>0</i><button class="qp" aria-label="Tambah">+</button></div>';
+  jx.appendChild(r);J[i]={r:r,n:r.querySelector("i"),m:r.querySelector(".qm"),p:r.querySelector(".qp")};
+  J[i].p.onclick=function(){st.q[i]=Math.min(MAX,(st.q[i]||0)+1);paintJ(i);upd()};
+  J[i].m.onclick=function(){st.q[i]=Math.max(0,(st.q[i]||0)-1);paintJ(i);upd()};
+  paintJ(i)});
+ obs.observe(jx,{childList:true});upd()}
+window.upd=function(){var o=G("order"),r=G("ring"),q=st.q||{},pc=0,t=0;
+ jenis.forEach(function(x,i){var n=q[i]||0;pc+=n;t+=x[1]*n});
+ if(!pc){r.innerHTML="Pilih menu dulu<b>Rp 0</b>";o.disabled=true;G("lvl").classList.remove("show");return}
+ G("lvl").classList.add("show");
+ if(st.l)t+=st.l[1]*pc;
+ tops.forEach(function(x,i){t+=x[1]*(st.t[i]||0)});
+ r.innerHTML=(st.l?"Level "+st.l[0]:"Pilih level")+" · "+pc+" porsi<b>"+rp(t)+"</b>";o.disabled=!st.l};
+G("order").onclick=function(){
+ var q=st.q||{},it=[],tot=0,pc=0,tp=[];
+ jenis.forEach(function(x,i){var n=q[i]||0;if(n>0){it.push(n>1?x[0]+" x"+n:x[0]);tot+=x[1]*n;pc+=n}});
+ if(!pc||!st.l)return;
+ tot+=st.l[1]*pc;
+ tops.forEach(function(x,i){var n=st.t[i]||0;if(n>0){tp.push(n>1?x[0]+" x"+n:x[0]);tot+=x[1]*n}});
+ H.unshift({id:H.length?H[0].id+1:1,j:it.join(", "),l:st.l[0],t:tp,tot:tot,ts:Date.now()});
+ save();render();
+ st={j:null,q:{},l:null,t:{}};
+ document.querySelectorAll(".btn.on").forEach(function(b){b.classList.remove("on")});
+ document.querySelectorAll("#top .trow").forEach(function(r){r.classList.remove("on");r.querySelector("i").textContent="0";r.querySelector(".qm").disabled=true});
+ jenis.forEach(function(x,i){paintJ(i)});
+ G("lvl").classList.remove("show");upd();go("nota")};
+
+/* rincian harian: jumlah porsi terjual per jenis */
+function parseJ(s){return String(s).split(", ").map(function(x){var m=/^(.*) x(\d+)$/.exec(x);return m?[m[1],+m[2]]:[x,1]})}
+var origLap=window.lap;
+window.lap=function(){origLap();if(LV!="h")return;
+ var r=dr("h",LO),A=r[0].getTime(),B=r[1].getTime(),cnt={},ord=[];
+ jenis.forEach(function(j){cnt[j[0]]=0;ord.push(j[0])});
+ H.forEach(function(n){if(n.ts<A||n.ts>=B)return;parseJ(n.j).forEach(function(p){if(!(p[0] in cnt)){cnt[p[0]]=0;ord.push(p[0])}cnt[p[0]]+=p[1]})});
+ var mx=1;ord.forEach(function(k){if(cnt[k]>mx)mx=cnt[k]});
+ var bars=G("lap").querySelector(".bars");
+ if(bars)bars.innerHTML=ord.map(function(k){return '<div class="br"><u>'+esc(k)+'</u><div><i style="width:'+Math.round(cnt[k]/mx*100)+'%"></i></div><em>'+cnt[k]+' porsi</em></div>'}).join("")};
+
+var rq=document.querySelector("#p-menu h2 .req");if(rq)rq.textContent="(wajib, bisa lebih dari 1, maks. "+MAX+" per jenis)";
+rebuildJ();lap();
+})();
